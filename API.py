@@ -32,7 +32,12 @@ headers = {
 }
 
 BASE_URL = 'https://api.spotify.com/v1/artists/'
+
 ID = "0TnOYISbd1XYRBk9myaseg"
-r = requests.get(BASE_URL + ID, headers=headers)
+ID2 = "00FQb4jTyendYWaN8pK0wa"
+
+#Andy
+#Create a list and go through the list
+r = requests.get(BASE_URL + ID , headers=headers)
 r = r.json()
 print(r)
