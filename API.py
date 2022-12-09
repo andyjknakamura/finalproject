@@ -8,16 +8,31 @@ import unittest
 import sqlite3
 import json
 import spotipy
-import spotipy.util as util
+from spotipy.oauth2 import SpotifyClientCredentials
 
-"""username = 'Jess'
-scope = 'user-library-read'
-util.prompt_for_user_token(username,scope,client_id='f625e8875cad4052bc9e29872bd62523',client_secret='c145b321c26b42e1871b412a8eeb48e7',redirect_uri='http://localhost/')
-# token 你的token，在运行上面的代码后，会显示在http://localhost/里面"""
-token='BQDw9RBvTvDrwIU2pYEqUHFaL'
-headers = {"Authorization": "Bearer {}".format(token)}
-parms = "2CIMQHirSU0MQqyYHq0eOx,57dN52uHvrHOxijzpIgu3E,1vCWHaC5f2uS3yhpwWbIA6"
-response = requests.get("https://api.spotify.com/v1/artists", parms, headers= headers)
-data = response.text
-in_list = json.loads(data)
-print(in_list)
+AUTH_URL = 'https://accounts.spotify.com/api/token'
+
+# POST
+auth_response = requests.post(AUTH_URL, {
+    'grant_type': 'client_credentials',
+    'client_id': "f625e8875cad4052bc9e29872bd62523",
+    'client_secret': "c145b321c26b42e1871b412a8eeb48e7",
+    })
+
+# convert the response to JSON
+auth_response_data = auth_response.json()
+
+# save the access token
+access_token = auth_response_data['access_token']
+print(access_token)
+
+
+headers = {
+    'Authorization': 'Bearer {token}'.format(token=access_token)
+}
+
+BASE_URL = 'https://api.spotify.com/v1/artists/'
+ID = "0TnOYISbd1XYRBk9myaseg"
+r = requests.get(BASE_URL + ID, headers=headers)
+r = r.json()
+print(r)
