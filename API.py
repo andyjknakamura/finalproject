@@ -10,35 +10,47 @@ import json
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 
-AUTH_URL = 'https://accounts.spotify.com/api/token'
+def authentication():
 
-# POST
-auth_response = requests.post(AUTH_URL, {
-    'grant_type': 'client_credentials',
-    'client_id': "f625e8875cad4052bc9e29872bd62523",
-    'client_secret': "c145b321c26b42e1871b412a8eeb48e7",
-    })
+    AUTH_URL = 'https://accounts.spotify.com/api/token'
 
-# convert the response to JSON
-auth_response_data = auth_response.json()
+    # POST
+    auth_response = requests.post(AUTH_URL, {
+        'grant_type': 'client_credentials',
+        'client_id': "f625e8875cad4052bc9e29872bd62523",
+        'client_secret': "c145b321c26b42e1871b412a8eeb48e7",
+        })
 
-# save the access token
-access_token = auth_response_data['access_token']
-print(access_token)
+    # convert the response to JSON
+    auth_response_data = auth_response.json()
 
+    # save the access token
+    access_token = auth_response_data['access_token']
+    return access_token
 
-headers = {
-    'Authorization': 'Bearer {token}'.format(token=access_token)
-}
+def get_artist_info(access_token, ID):
 
-BASE_URL = 'https://api.spotify.com/v1/artists/'
+    headers = {'Authorization': 'Bearer {token}'.format(token=access_token)}
 
-ID = "0TnOYISbd1XYRBk9myaseg"
-ID2 = "00FQb4jTyendYWaN8pK0wa"
+    BASE_URL = 'https://api.spotify.com/v1/artists/'
 
-#Andy
-#Create a list and go through the list
+    #ID = "0TnOYISbd1XYRBk9myaseg"
+    #ID2 = "00FQb4jTyendYWaN8pK0wa"
 
+    #Andy
+    #Create a list and go through the list
+    r = requests.get(BASE_URL + ID , headers=headers)
+    r = r.text
+    r = json.loads(r)
+    name = r["name"]
+    popularity = r["popularity"]
+    genres = r["genres"]
+    return (ID, name, genres, popularity)
+    """    r = json.loads(r)
+    print(r)
+    name = re.findall("\"name\":\s\"([a-zA-Z0-9\s]+) \"", r)[0]
+
+    return name"""
 uri_list = [
     '4q3ewBCX7sLwd24euuV69X', #bad bunny
     '06HL4z0CvFAxyc27GXpf02', #taylor swift
@@ -50,7 +62,6 @@ uri_list = [
     '4dpARuHxo51G3z768sgnrY', #adele
     '1Xyo4u8uXC1ZmMpatF05PJ', #the weeknd
     '5f7VJjfbwm532GiveGC0ZK', #lil baby
-    '''
     '1RyvyyTE3xzB2ZywiAwp0i', #future
     '1uNFoZAHBGtllmzznpCI3s', #justin bieber
     '246dkjvS1zLTtiykXe5h60', #post malone
@@ -141,10 +152,62 @@ uri_list = [
     '048LktY5zMnakWq7PTtFrz', #ckay
     '6olE6TJLqED3rqDCT0FyPh', #nirvana
     '1URnnhqYAYcrqrcwql10ft', #21 savage
-    '''
 ]
+#database
+def open_database(db_name):
+    path = os.path.dirname(os.path.abspath(__file__))
+    conn = sqlite3.connect(path+'/'+db_name)
+    cur = conn.cursor()
+    return cur, conn
 
-for uri in uri_list:
-    r = requests.get(BASE_URL + uri, headers=headers)
-    r = r.json()
-    print(r)
+def spotify_table1(artist_list, cur, conn):
+    cur.execute('DROP TABLE IF EXISTS Genre_Info')
+    cur.execute('CREATE TABLE Genre_Info (id TEXT PRIMARY KEY, name TEXT UNIQUE, genres TEXT)')
+    for tuple in artist_list:
+        cur.execute("INSERT INTO Genre_Info (id, name, genres) VALUES (?,?,?)", (tuple[0], tuple[1], str(tuple[2])))
+    conn.commit()
+    cur.execute("SELECT id, name, genres FROM Genre_Info ")
+    for row in cur:
+        print(row)
+    cur.close
+    
+
+def spotify_table2(artist_list, cur, conn):
+    cur.execute('DROP TABLE IF EXISTS Popularity_Info')
+    cur.execute('CREATE TABLE Popularity_Info (id TEXT PRIMARY KEY, name TEXT UNIQUE, popularity INTEGER)')
+    for tuple in artist_list:
+        cur.execute("INSERT INTO Popularity_Info (id, name, popularity) VALUES (?,?,?)", (tuple[0], tuple[1], int(tuple[3])))
+    conn.commit()
+    cur.execute("SELECT id, name, popularity FROM Popularity_Info ")
+
+    for row in cur:
+        print(row)
+    cur.close
+
+if __name__ == '__main__':
+    token = authentication()
+    artist_list = []
+    for id in uri_list[0:20]:
+        artist_info = get_artist_info(token, id)
+        artist_list.append(artist_info)
+    
+    for id in uri_list[21:40]:
+        artist_info = get_artist_info(token, id)
+        artist_list.append(artist_info)
+
+    for id in uri_list[41:60]:
+        artist_info = get_artist_info(token, id)
+        artist_list.append(artist_info)
+    
+    for id in uri_list[61:80]:
+        artist_info = get_artist_info(token, id)
+        artist_list.append(artist_info)    
+
+    for id in uri_list[81:]:
+        artist_info = get_artist_info(token, id)
+        artist_list.append(artist_info)
+
+    cur, conn = open_database("project.db")
+    spotify_table1(artist_list, cur, conn)
+    spotify_table2(artist_list, cur, conn)
+
