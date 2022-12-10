@@ -38,6 +38,7 @@ ID2 = "00FQb4jTyendYWaN8pK0wa"
 
 #Andy
 #Create a list and go through the list
+<<<<<<< HEAD
 uri_list = [
     '4q3ewBCX7sLwd24euuV69X', #bad bunny
     '06HL4z0CvFAxyc27GXpf02', #taylor swift
@@ -147,3 +148,8 @@ for uri in uri_list:
     r = requests.get(BASE_URL + uri, headers=headers)
     r = r.json()
     print(r)
+=======
+r = requests.get(BASE_URL + ID , headers=headers)
+r = r.json()
+print(r)
+>>>>>>> 3fa4dc576da36caa4d26e283a97cab8edcfe1202
