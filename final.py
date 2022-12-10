@@ -16,39 +16,41 @@ def open_database(db_name):
     cur = conn.cursor()
     return cur, conn
 
-#def maps_database:
+#def maps_table:
 #   Jess
 #   Creating the database from the maps API with 
 #   categories such as city name, # of supermarkets
 
-def cities_database(link, cur, conn):
+def billboard_table(link, cur, conn):
 #   Andrew
 #   Creating the database from urls with
 #   categories such as city name, median household income level, racial demographics of the area,
 #   income change over time(?)
     resp = requests.get(link)
     soup = BeautifulSoup(resp.content, 'html.parser')
-    td_list = soup.find_all('td')
+    n_list = []
+    r_list = []
+    tag = soup.find(class_="chart-results-list // u-padding-b-250")
+    print(tag)
+    name_list = tag.find_all('h3')
+    for item in name_list:
+        name = item.text
+        n_list.append(name.strip('\n\t'))
+    rank_list = tag.find_all('span')
+    for item in rank_list:
+        rank = item.text
+        r_list.append(rank.strip('\n\t'))
     tup_list = []
-    for i in range(5, len(td_list), 3):
-        split_data = td_list[i+2].text.split(' / ')
-        city_name = re.findall('([A-Za-z\s]*), MI', split_data[0])
-        tup = (city_name[0], split_data[1], td_list[i+1].text)
+    for i in range(100):
+        tup = (r_list[i], n_list[i])
         tup_list.append(tup)
     print(tup_list)
     cur.execute("DROP TABLE IF EXISTS Cities")
-    cur.execute("CREATE TABLE Cities (name TEXT, population TEXT, income TEXT)")
+    cur.execute("DROP TABLE IF EXISTS Charts")
+    cur.execute("CREATE TABLE Charts (name TEXT, rank INTEGER)")
     for item in tup_list:
-        cur.execute("INSERT INTO Cities (name, population, income) VALUES (?, ?, ?)", item)
+        cur.execute("INSERT INTO Charts (name, rank) VALUES (?, ?)", item)
     conn.commit()
-
-#def restaurant_ratio:
-#   Jess
-#   Calculating ratio of fast food restaurants to total restaurants in the area
-
-#def income_calc:
-#   Andrew
-#   Not sure about this one quite yet tbh
 
 class TestCases(unittest.TestCase):
     def setUp(self):
@@ -57,5 +59,5 @@ class TestCases(unittest.TestCase):
 if __name__ == '__main__':
     #more code here
     cur, conn = open_database('project.db')
-    cities_database('http://www.usa.com/rank/michigan-state--median-household-income--city-rank.htm?hl=&hlst=&wist=&yr=9000&dis=&sb=DESC&plow=&phigh=&ps=', cur, conn)
+    billboard_table('https://www.billboard.com/charts/year-end/top-artists/', cur, conn)
     unittest.main(verbosity=2)
