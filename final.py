@@ -31,7 +31,7 @@ def billboard_table(link, cur, conn):
     n_list = []
     r_list = []
     tag = soup.find(class_="chart-results-list // u-padding-b-250")
-    print(tag)
+    #print(tag)
     name_list = tag.find_all('h3')
     for item in name_list:
         name = item.text
@@ -44,13 +44,19 @@ def billboard_table(link, cur, conn):
     for i in range(100):
         tup = (r_list[i], n_list[i])
         tup_list.append(tup)
-    print(tup_list)
+    #print(tup_list)
     cur.execute("DROP TABLE IF EXISTS Cities")
     cur.execute("DROP TABLE IF EXISTS Charts")
     cur.execute("CREATE TABLE Charts (name TEXT, rank INTEGER)")
     for item in tup_list:
         cur.execute("INSERT INTO Charts (name, rank) VALUES (?, ?)", item)
     conn.commit()
+
+    #print out database
+    cur.execute("SELECT name,rank FROM Charts")
+    for row in cur:
+        print(row)
+    cur.close
 
 class TestCases(unittest.TestCase):
     def setUp(self):

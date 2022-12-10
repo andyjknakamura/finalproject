@@ -162,11 +162,11 @@ def open_database(db_name):
 
 def spotify_table1(artist_list, cur, conn):
     cur.execute('DROP TABLE IF EXISTS Genre_Info')
-    cur.execute('CREATE TABLE Genre_Info (id TEXT PRIMARY KEY, name TEXT UNIQUE, genres TEXT)')
+    cur.execute('CREATE TABLE Genre_Info (name TEXT, genres TEXT)')
     for tuple in artist_list:
-        cur.execute("INSERT INTO Genre_Info (id, name, genres) VALUES (?,?,?)", (tuple[0], tuple[1], str(tuple[2])))
+        cur.execute("INSERT INTO Genre_Info (name, genres) VALUES (?,?)", (tuple[1], str(tuple[2])))
     conn.commit()
-    cur.execute("SELECT id, name, genres FROM Genre_Info ")
+    cur.execute("SELECT name, genres FROM Genre_Info ")
     for row in cur:
         print(row)
     cur.close
@@ -174,15 +174,55 @@ def spotify_table1(artist_list, cur, conn):
 
 def spotify_table2(artist_list, cur, conn):
     cur.execute('DROP TABLE IF EXISTS Popularity_Info')
-    cur.execute('CREATE TABLE Popularity_Info (id TEXT PRIMARY KEY, name TEXT UNIQUE, popularity INTEGER)')
+    cur.execute('CREATE TABLE Popularity_Info (name TEXT PRIMARY KEY, popularity INTEGER)')
     for tuple in artist_list:
-        cur.execute("INSERT INTO Popularity_Info (id, name, popularity) VALUES (?,?,?)", (tuple[0], tuple[1], int(tuple[3])))
+        cur.execute("INSERT INTO Popularity_Info (name, popularity) VALUES (?,?)", (tuple[1], int(tuple[3])))
     conn.commit()
-    cur.execute("SELECT id, name, popularity FROM Popularity_Info ")
-
+    cur.execute("SELECT name, popularity FROM Popularity_Info ")
     for row in cur:
         print(row)
     cur.close
+
+def billboard_table(link, cur, conn):
+#   Andrew
+#   Creating the database from urls with
+#   categories such as city name, median household income level, racial demographics of the area,
+#   income change over time(?)
+    resp = requests.get(link)
+    soup = BeautifulSoup(resp.content, 'html.parser')
+    n_list = []
+    r_list = []
+    tag = soup.find(class_="chart-results-list // u-padding-b-250")
+    #print(tag)
+    name_list = tag.find_all('h3')
+    for item in name_list:
+        name = item.text
+        n_list.append(name.strip('\n\t'))
+    rank_list = tag.find_all('span')
+    for item in rank_list:
+        rank = item.text
+        r_list.append(rank.strip('\n\t'))
+    tup_list = []
+    for i in range(100):
+        tup = (r_list[i], n_list[i])
+        tup_list.append(tup)
+    #print(tup_list)
+    cur.execute("DROP TABLE IF EXISTS Cities")
+    cur.execute("DROP TABLE IF EXISTS Charts")
+    cur.execute("CREATE TABLE Charts (id INTEGER PRIMARY KEY NOT NULL, name TEXT , rank INTEGER, FOREIGN KEY (name) REFERENCES Popularity_Info(name))")
+    for item in tup_list:
+        cur.execute("INSERT INTO Charts (name, rank) VALUES (?, ?)", item)
+    conn.commit()
+
+    #print out database
+    cur.execute("SELECT id, name,rank FROM Charts")
+    for row in cur:
+        print(row)
+    cur.close
+
+def join_billboard_spotify():
+
+    pass
 
 if __name__ == '__main__':
     token = authentication()
@@ -211,3 +251,8 @@ if __name__ == '__main__':
     spotify_table1(artist_list, cur, conn)
     spotify_table2(artist_list, cur, conn)
 
+    cur, conn = open_database('project.db')
+    billboard_table('https://www.billboard.com/charts/year-end/top-artists/', cur, conn)
+    unittest.main(verbosity=2)
+#the average number of genres
+#the difference between ranks < 10
