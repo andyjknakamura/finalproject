@@ -9,7 +9,7 @@ import sqlite3
 import json
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
-
+'''
 def authentication():
 
     AUTH_URL = 'https://accounts.spotify.com/api/token'
@@ -154,12 +154,13 @@ uri_list = [
     '1URnnhqYAYcrqrcwql10ft', #21 savage
 ]
 #database
+'''
 def open_database(db_name):
     path = os.path.dirname(os.path.abspath(__file__))
     conn = sqlite3.connect(path+'/'+db_name)
     cur = conn.cursor()
     return cur, conn
-
+'''
 def spotify_table1(artist_list, cur, conn):
     cur.execute('DROP TABLE IF EXISTS Genre_Info')
     cur.execute('CREATE TABLE Genre_Info (id INTEGER PRIMARY KEY NOT NULL, name TEXT, genres TEXT)')
@@ -175,14 +176,15 @@ def spotify_table1(artist_list, cur, conn):
     
 
 def spotify_table2(artist_list, cur, conn):
+    sorted_artist_list = sorted(artist_list, key=lambda x:x[3], reverse=True)
     cur.execute('DROP TABLE IF EXISTS Popularity_Info')
-    cur.execute('CREATE TABLE Popularity_Info (id INTEGER PRIMARY KEY NOT NULL, name TEXT, popularity INTEGER)')
+    cur.execute('CREATE TABLE Popularity_Info (id INTEGER PRIMARY KEY NOT NULL, name TEXT, popularity INTEGER, spotify_rank INTEGER)')
     count = 1
     for tuple in artist_list:
-        cur.execute("INSERT INTO Popularity_Info (id, name, popularity) VALUES (?,?,?)", (count, tuple[1], int(tuple[3])))
+        cur.execute("INSERT INTO Popularity_Info (id, name, popularity, spotify_rank) VALUES (?,?,?,?)", (count, tuple[1], int(tuple[3]), (sorted_artist_list.index(tuple) + 1)))
         count += 1
     conn.commit()
-    cur.execute("SELECT id, name, popularity FROM Popularity_Info ")
+    cur.execute("SELECT id, name, popularity, spotify_rank FROM Popularity_Info ")
     for row in cur:
         print(row)
     cur.close
@@ -222,15 +224,19 @@ def billboard_table(link, cur, conn):
     for row in cur:
         print(row)
     cur.close
-
+'''
 #the average number of genres
 #the average ranking for each artist this should use join
 def get_rank_averages(cur, conn):
     diff_dict = {}
-    cur.execute('SELECT BillBoard_Charts.name, BillBoard_Charts.rank, Popularity_Info.popularity FROM BillBoard_Charts JOIN Popularity_Info ON BillBoard_Charts.id = Popularity_Info.id')
+    cur.execute('SELECT BillBoard_Charts.name, BillBoard_Charts.rank, Popularity_Info.spotify_rank FROM BillBoard_Charts JOIN Popularity_Info ON BillBoard_Charts.id = Popularity_Info.id')
+    for row in cur:
+        diff_dict[row[0]] = ((row[1] + row[2]) / 2)
+    conn.commit()
     return diff_dict
 
 if __name__ == '__main__':
+    '''
     token = authentication()
     artist_list = []
     for id in uri_list[0:21]:
@@ -256,8 +262,10 @@ if __name__ == '__main__':
     cur, conn = open_database("project.db")
     spotify_table1(artist_list, cur, conn)
     spotify_table2(artist_list, cur, conn)
-
+    '''
     cur, conn = open_database('project.db')
-    billboard_table('https://www.billboard.com/charts/year-end/top-artists/', cur, conn)
+    #billboard_table('https://www.billboard.com/charts/year-end/top-artists/', cur, conn)
+    
+    print(get_rank_averages(cur, conn))
     unittest.main(verbosity=2)
 
