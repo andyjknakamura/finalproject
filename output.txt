@@ -99,3 +99,5 @@ Coldplay: 61.0
 CKay: 94.5
 Nirvana: 82.5
 21 Savage: 52.5
+
+Average number of genres of all artists' discographies: 3.93
