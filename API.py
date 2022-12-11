@@ -224,30 +224,28 @@ def billboard_table(link, cur, conn):
     cur.close
 
 #the average number of genres
-#the difference between ranks < 10 this should use join
-'''
-def get_rank_differences(cur, conn):
+#the average ranking for each artist this should use join
+def get_rank_averages(cur, conn):
     diff_dict = {}
     cur.execute('SELECT BillBoard_Charts.name, BillBoard_Charts.rank, Popularity_Info.popularity FROM BillBoard_Charts JOIN Popularity_Info ON BillBoard_Charts.id = Popularity_Info.id')
     return diff_dict
-'''
 
 if __name__ == '__main__':
     token = authentication()
     artist_list = []
-    for id in uri_list[0:20]:
+    for id in uri_list[0:21]:
         artist_info = get_artist_info(token, id)
         artist_list.append(artist_info)
     
-    for id in uri_list[21:40]:
+    for id in uri_list[21:41]:
         artist_info = get_artist_info(token, id)
         artist_list.append(artist_info)
 
-    for id in uri_list[41:60]:
+    for id in uri_list[41:61]:
         artist_info = get_artist_info(token, id)
         artist_list.append(artist_info)
     
-    for id in uri_list[61:80]:
+    for id in uri_list[61:81]:
         artist_info = get_artist_info(token, id)
         artist_list.append(artist_info)    
 
