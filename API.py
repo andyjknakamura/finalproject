@@ -227,12 +227,18 @@ def billboard_table(link, cur, conn):
 '''
 #the average number of genres
 #the average ranking for each artist this should use join
-def get_rank_averages(cur, conn):
+def get_rank_averages(file, cur, conn):
     diff_dict = {}
     cur.execute('SELECT BillBoard_Charts.name, BillBoard_Charts.rank, Popularity_Info.spotify_rank FROM BillBoard_Charts JOIN Popularity_Info ON BillBoard_Charts.id = Popularity_Info.id')
     for row in cur:
         diff_dict[row[0]] = ((row[1] + row[2]) / 2)
     conn.commit()
+    fout = open(file, 'w')
+    fout.write('Average ranks of each artist based on billboard and spotify data:\n')
+    for item in diff_dict:
+        fout.write(item + ': ' + str(diff_dict[item]) + '\n')
+    fout.close()
+    
     return diff_dict
 
 if __name__ == '__main__':
@@ -266,6 +272,6 @@ if __name__ == '__main__':
     cur, conn = open_database('project.db')
     #billboard_table('https://www.billboard.com/charts/year-end/top-artists/', cur, conn)
     
-    print(get_rank_averages(cur, conn))
+    print(get_rank_averages('output.txt', cur, conn))
     unittest.main(verbosity=2)
 
