@@ -162,11 +162,13 @@ def open_database(db_name):
 
 def spotify_table1(artist_list, cur, conn):
     cur.execute('DROP TABLE IF EXISTS Genre_Info')
-    cur.execute('CREATE TABLE Genre_Info (name TEXT, genres TEXT)')
+    cur.execute('CREATE TABLE Genre_Info (id INTEGER PRIMARY KEY NOT NULL, name TEXT, genres TEXT)')
+    count = 1
     for tuple in artist_list:
-        cur.execute("INSERT INTO Genre_Info (name, genres) VALUES (?,?)", (tuple[1], str(tuple[2])))
+        cur.execute("INSERT INTO Genre_Info (id, name, genres) VALUES (?,?,?)", (count, tuple[1], str(tuple[2])))
+        count += 1
     conn.commit()
-    cur.execute("SELECT name, genres FROM Genre_Info ")
+    cur.execute("SELECT id, name, genres FROM Genre_Info ")
     for row in cur:
         print(row)
     cur.close
@@ -174,11 +176,13 @@ def spotify_table1(artist_list, cur, conn):
 
 def spotify_table2(artist_list, cur, conn):
     cur.execute('DROP TABLE IF EXISTS Popularity_Info')
-    cur.execute('CREATE TABLE Popularity_Info (name TEXT PRIMARY KEY, popularity INTEGER)')
+    cur.execute('CREATE TABLE Popularity_Info (id INTEGER PRIMARY KEY NOT NULL, name TEXT, popularity INTEGER)')
+    count = 1
     for tuple in artist_list:
-        cur.execute("INSERT INTO Popularity_Info (name, popularity) VALUES (?,?)", (tuple[1], int(tuple[3])))
+        cur.execute("INSERT INTO Popularity_Info (id, name, popularity) VALUES (?,?,?)", (count, tuple[1], int(tuple[3])))
+        count += 1
     conn.commit()
-    cur.execute("SELECT name, popularity FROM Popularity_Info ")
+    cur.execute("SELECT id, name, popularity FROM Popularity_Info ")
     for row in cur:
         print(row)
     cur.close
@@ -203,26 +207,30 @@ def billboard_table(link, cur, conn):
         rank = item.text
         r_list.append(rank.strip('\n\t'))
     tup_list = []
-    for i in range(100):
-        tup = (r_list[i], n_list[i])
+    for i in range(1, 101):
+        tup = (i, n_list[i - 1], r_list[i - 1])
         tup_list.append(tup)
     #print(tup_list)
-    cur.execute("DROP TABLE IF EXISTS Cities")
-    cur.execute("DROP TABLE IF EXISTS Charts")
-    cur.execute("CREATE TABLE Charts (id INTEGER PRIMARY KEY NOT NULL, name TEXT , rank INTEGER, FOREIGN KEY (name) REFERENCES Popularity_Info(name))")
+    cur.execute("DROP TABLE IF EXISTS BillBoard_Charts")
+    cur.execute("CREATE TABLE BillBoard_Charts (id INTEGER PRIMARY KEY NOT NULL, name TEXT , rank INTEGER)")
     for item in tup_list:
-        cur.execute("INSERT INTO Charts (name, rank) VALUES (?, ?)", item)
+        cur.execute("INSERT INTO BillBoard_Charts (id, name, rank) VALUES (?, ?, ?)", item)
     conn.commit()
 
     #print out database
-    cur.execute("SELECT id, name,rank FROM Charts")
+    cur.execute("SELECT id, name, rank FROM BillBoard_Charts")
     for row in cur:
         print(row)
     cur.close
 
-def join_billboard_spotify():
-
-    pass
+#the average number of genres
+#the difference between ranks < 10 this should use join
+'''
+def get_rank_differences(cur, conn):
+    diff_dict = {}
+    cur.execute('SELECT BillBoard_Charts.name, BillBoard_Charts.rank, Popularity_Info.popularity FROM BillBoard_Charts JOIN Popularity_Info ON BillBoard_Charts.id = Popularity_Info.id')
+    return diff_dict
+'''
 
 if __name__ == '__main__':
     token = authentication()
@@ -254,5 +262,4 @@ if __name__ == '__main__':
     cur, conn = open_database('project.db')
     billboard_table('https://www.billboard.com/charts/year-end/top-artists/', cur, conn)
     unittest.main(verbosity=2)
-#the average number of genres
-#the difference between ranks < 10
+
