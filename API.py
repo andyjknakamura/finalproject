@@ -266,6 +266,7 @@ def graph_ranks(cur, conn):
     ax.scatter(newline_keys, spotify_ranks, label='Spotify Chart Rankings')
     ax.scatter(newline_keys, average_ranks.values(), label='Average Chart Rankings')
     ax.legend()
+    ax.set_xticklabels(newline_keys, rotation='vertical')
     ax.set_xlabel('Artist names')
     ax.set_ylabel('Chart placements')
     ax.set_title('Placements of BillBoard\'s 2022 Top 100 Artists on Spotify\'s Popularity Rankings')
