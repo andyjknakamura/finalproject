@@ -11,7 +11,6 @@ import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 import matplotlib
 import matplotlib.pyplot as plt
-'''
 def authentication():
 
     AUTH_URL = 'https://accounts.spotify.com/api/token'
@@ -156,22 +155,26 @@ uri_list = [
     '1URnnhqYAYcrqrcwql10ft', #21 savage
 ]
 #database
-'''
+
 def open_database(db_name):
     path = os.path.dirname(os.path.abspath(__file__))
     conn = sqlite3.connect(path+'/'+db_name)
     cur = conn.cursor()
     return cur, conn
-'''
+
 def spotify_table1(artist_list, cur, conn):
     cur.execute('DROP TABLE IF EXISTS Genre_Info')
-    cur.execute('CREATE TABLE Genre_Info (id INTEGER PRIMARY KEY NOT NULL, name TEXT, genres TEXT)')
+    cur.execute('CREATE TABLE Genre_Info (id INTEGER PRIMARY KEY NOT NULL, name TEXT, genres TEXT, genres_num INTEGER)')
     count = 1
     for tuple in artist_list:
-        cur.execute("INSERT INTO Genre_Info (id, name, genres) VALUES (?,?,?)", (count, tuple[1], str(tuple[2])))
+        if len(str(tuple[2])) > 2:
+            genres_num = str(tuple[2]).count(",") + 1
+        else:
+            genres_num = 0
+        cur.execute("INSERT INTO Genre_Info (id, name, genres, genres_num) VALUES (?,?,?,?)", (count, tuple[1], str(tuple[2]), genres_num))
         count += 1
     conn.commit()
-    cur.execute("SELECT id, name, genres FROM Genre_Info ")
+    cur.execute("SELECT id, name, genres, genres_num FROM Genre_Info ")
     for row in cur:
         print(row)
     cur.close
@@ -226,7 +229,6 @@ def billboard_table(link, cur, conn):
     for row in cur:
         print(row)
     cur.close
-'''
 #the average number of genres
 #the average ranking for each artist this should use join
 def get_genre_average(cur, conn):
@@ -277,8 +279,32 @@ def graph_ranks(cur, conn):
     ax.grid()
     plt.show()
 
+def genre_percentage(cur, conn):
+    one_genre = 0
+    two_genre = 0
+    three_genre = 0
+    four_or_more = 0
+    unknown = 0
+    cur.execute("SELECT genres_num FROM Genre_Info")
+    for num in cur:
+        num = int(num[0])
+        if num == 1:
+            one_genre += 1
+        elif num == 2:
+            two_genre += 1
+        elif num == 3:
+            three_genre += 1
+        elif num >= 4:
+            four_or_more += 1
+        else:
+            unknown += 1
+    colors = ["gold", "yellowgreen", "lightcoral", "lightskyblue"]
+    percentages = [one_genre/100, two_genre/100, three_genre/100, four_or_more / 100, unknown / 100]
+    lables = ["1 genre", "2 genres", "3 genres", "4 or more", "unknown" ]
+    plt.pie(percentages, labels = lables, colors = colors, shadow= True,startangle=140, autopct='%.2f%%')
+    plt.title("Number of Genres")
+    plt.show()
 if __name__ == '__main__':
-    '''
     token = authentication()
     artist_list = []
     for id in uri_list[0:21]:
@@ -304,7 +330,7 @@ if __name__ == '__main__':
     cur, conn = open_database("project.db")
     spotify_table1(artist_list, cur, conn)
     spotify_table2(artist_list, cur, conn)
-    '''
+
     cur, conn = open_database('project.db')
     #billboard_table('https://www.billboard.com/charts/year-end/top-artists/', cur, conn)
     
@@ -312,6 +338,6 @@ if __name__ == '__main__':
     genre_avgs = get_genre_average(cur, conn)
     write_averages(genre_avgs, rank_avgs, 'output.txt')
     graph_ranks(cur, conn)
-    
+    genre_percentage(cur, conn)
     unittest.main(verbosity=2)
 
