@@ -9,6 +9,8 @@ import sqlite3
 import json
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
+import matplotlib
+import matplotlib.pyplot as plt
 '''
 def authentication():
 
@@ -227,19 +229,48 @@ def billboard_table(link, cur, conn):
 '''
 #the average number of genres
 #the average ranking for each artist this should use join
-def get_rank_averages(file, cur, conn):
+def get_rank_averages(cur, conn):
     diff_dict = {}
     cur.execute('SELECT BillBoard_Charts.name, BillBoard_Charts.rank, Popularity_Info.spotify_rank FROM BillBoard_Charts JOIN Popularity_Info ON BillBoard_Charts.id = Popularity_Info.id')
     for row in cur:
         diff_dict[row[0]] = ((row[1] + row[2]) / 2)
     conn.commit()
+    return diff_dict
+
+def write_rank_averages(data, file):
     fout = open(file, 'w')
     fout.write('Average ranks of each artist based on billboard and spotify data:\n')
-    for item in diff_dict:
-        fout.write(item + ': ' + str(diff_dict[item]) + '\n')
+    for item in data:
+        fout.write(item + ': ' + str(data[item]) + '\n')
     fout.close()
-    
-    return diff_dict
+
+def graph_ranks(cur, conn):
+    spotify_ranks = []
+    billboard_ranks = []
+    average_ranks = get_rank_averages(cur, conn)
+    cur.execute('SELECT spotify_rank FROM Popularity_Info')
+    for row in cur:
+        spotify_ranks.append(row[0])
+    cur.execute('SELECT rank FROM BillBoard_Charts')
+    for row in cur:
+        billboard_ranks.append(row[0])
+    fig, ax = plt.subplots()
+    newline_keys = []
+    for item in average_ranks.keys():
+        if ' ' not in item:
+            newline_keys.append(item)
+        else:
+            new_item = item.replace(' ', '\n')
+            newline_keys.append(new_item)
+    ax.scatter(newline_keys, billboard_ranks, label='BillBoard Chart Rankings')
+    ax.scatter(newline_keys, spotify_ranks, label='Spotify Chart Rankings')
+    ax.scatter(newline_keys, average_ranks.values(), label='Average Chart Rankings')
+    ax.legend()
+    ax.set_xlabel('Artist names')
+    ax.set_ylabel('Chart placements')
+    ax.set_title('Placements of BillBoard\'s 2022 Top 100 Artists on Spotify\'s Popularity Rankings')
+    ax.grid()
+    plt.show()
 
 if __name__ == '__main__':
     '''
@@ -272,6 +303,8 @@ if __name__ == '__main__':
     cur, conn = open_database('project.db')
     #billboard_table('https://www.billboard.com/charts/year-end/top-artists/', cur, conn)
     
-    print(get_rank_averages('output.txt', cur, conn))
+    rank_avgs = get_rank_averages(cur, conn)
+    write_rank_averages(rank_avgs, 'output.txt')
+    graph_ranks(cur, conn)
     unittest.main(verbosity=2)
 
