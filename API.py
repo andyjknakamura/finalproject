@@ -295,7 +295,7 @@ def genre_percentage(cur, conn):
             four_or_more += 1
         else:
             unknown += 1
-    colors = ["gold", "yellowgreen", "lightcoral", "lightskyblue"]
+    colors = ["gold", "yellowgreen", "lightcoral", "lightskyblue","grey"]
     percentages = [one_genre/100, two_genre/100, three_genre/100, four_or_more / 100, unknown / 100]
     lables = ["1 genre", "2 genres", "3 genres", "4 or more", "unknown" ]
     plt.pie(percentages, labels = lables, colors = colors, shadow= True,startangle=140, autopct='%.2f%%')
