@@ -47,11 +47,7 @@ def get_artist_info(access_token, ID):
     popularity = r["popularity"]
     genres = r["genres"]
     return (ID, name, genres, popularity)
-    """    r = json.loads(r)
-    print(r)
-    name = re.findall("\"name\":\s\"([a-zA-Z0-9\s]+) \"", r)[0]
-
-    return name"""
+    
 uri_list = [
     '4q3ewBCX7sLwd24euuV69X', #bad bunny
     '06HL4z0CvFAxyc27GXpf02', #taylor swift
