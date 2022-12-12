@@ -3,14 +3,14 @@ import re
 from bs4 import BeautifulSoup
 import requests
 import os
-import csv
-import unittest
 import sqlite3
 import json
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 import matplotlib
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
+
 def authentication():
 
     AUTH_URL = 'https://accounts.spotify.com/api/token'
@@ -266,6 +266,8 @@ def graph_ranks(cur, conn):
     ax.scatter(average_ranks.keys(), spotify_ranks, label='Spotify Chart Rankings')
     ax.scatter(average_ranks.keys(), average_ranks.values(), label='Average Chart Rankings')
     ax.legend()
+    ticks_loc = list(ax.get_xticks())
+    ax.xaxis.set_major_locator(mticker.FixedLocator(ticks_loc))
     ax.set_xticklabels(average_ranks.keys(), rotation='vertical')
     ax.margins(0)
     ax.set_xlabel('Artist names')
